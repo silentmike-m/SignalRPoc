@@ -7,7 +7,7 @@
 
     internal sealed record GetUsers : IRequest, IAuthId
     {
-        [JsonPropertyName("userName")] public string UserName { get; init; } = string.Empty;
+        [JsonIgnore] public string GroupId { get; set; } = default;
         [JsonIgnore] public Guid UserId { get; set; } = default;
     }
 }

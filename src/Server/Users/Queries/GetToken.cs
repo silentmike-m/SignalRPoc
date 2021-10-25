@@ -5,7 +5,8 @@
 
     public sealed record GetToken : IRequest<string>
     {
-        [JsonPropertyName("userName")] public string UserName { get; init; } = string.Empty;
+        [JsonPropertyName("group_id")] public string GroupId { get; init; } = default;
+        [JsonPropertyName("user_name")] public string UserName { get; init; } = string.Empty;
         [JsonPropertyName("password")] public string Password { get; init; } = string.Empty;
     }
 }

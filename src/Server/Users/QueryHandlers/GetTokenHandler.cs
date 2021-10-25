@@ -45,16 +45,20 @@
                 throw new Exception("Invalid user password");
             }
 
-            return Task.FromResult(CreateToken(user));
+            var token = this.CreateToken(user, request.GroupId);
+
+            return Task.FromResult(token);
         }
 
-        private string CreateToken(User user)
+        private string CreateToken(User user, string groupId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfiguration.SecurityKey));
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.NameId, user.Id.ToString()), new(JwtRegisteredClaimNames.GivenName, user.UserName)
+                new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                new(JwtRegisteredClaimNames.GivenName, user.UserName),
+                new("GroupId", groupId),
             };
 
             var dateTime = DateTime.Now;

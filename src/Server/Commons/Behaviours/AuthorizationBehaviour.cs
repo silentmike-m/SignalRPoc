@@ -16,11 +16,19 @@
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            IAuthId authId = request as IAuthId;
-
-            if (authId != null && authId.UserId == Guid.Empty)
+            if (request is IAuthId authId)
             {
-                authId.UserId = currentUserService.UserId;
+                var (groupId, userId) = currentUserService.CurrentUser;
+
+                if (authId.UserId == Guid.Empty)
+                {
+                    authId.UserId = userId;
+                }
+
+                if (string.IsNullOrEmpty(authId.GroupId))
+                {
+                    authId.GroupId = groupId;
+                }
             }
 
             return await next();

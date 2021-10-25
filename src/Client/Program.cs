@@ -8,13 +8,25 @@ namespace Client
     {
         static async Task Main(string[] args)
         {
-            if (args.Length == 2)
-                await new SignalRClient().StartConnection(args[0], args[1]);
-            else
-                await new SignalRClient().StartConnection("User1", "P@ssword!");
+            try
+            {
+                if (args.Length != 3)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
 
+                await new SignalRClient().StartConnection(args[0], args[1], args[2]);
 
-            Console.ReadKey();
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                throw;
+            }
+            finally
+            {
+                Console.ReadKey();
+            }
         }
     }
 }

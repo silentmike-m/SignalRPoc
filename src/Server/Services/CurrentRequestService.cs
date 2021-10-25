@@ -14,18 +14,19 @@
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public Guid UserId
+        public (string groupId, Guid userId) CurrentUser
         {
             get
             {
                 var nameIdentifier = this.httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var groupIdentifier = this.httpContextAccessor.HttpContext?.User?.FindFirstValue("GroupId")
+                    ?? string.Empty;
 
-                if (string.IsNullOrEmpty(nameIdentifier))
-                {
-                    return Guid.Empty;
-                }
+                var userId = string.IsNullOrEmpty(nameIdentifier)
+                                  ? Guid.Empty
+                                  : new Guid(nameIdentifier);
 
-                return new Guid(nameIdentifier);
+                return (groupIdentifier, userId);
             }
         }
     }

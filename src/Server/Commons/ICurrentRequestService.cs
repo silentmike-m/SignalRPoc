@@ -4,6 +4,6 @@
 
     public interface ICurrentRequestService
     {
-        Guid UserId { get; }
+        (string groupId, Guid userId) CurrentUser { get; }
     }
 }

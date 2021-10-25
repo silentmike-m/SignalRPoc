@@ -10,39 +10,48 @@
 
     internal sealed class SignalRClient
     {
-        public async Task StartConnection(string userName, string password)
+        public async Task StartConnection(string userName, string password, string groupId)
         {
-            var accessToken = await GetToken(userName, password);
+            var accessToken = await this.GetToken(userName, password, groupId);
 
+
+            await this.StartHubConnection(accessToken);
+
+            if (userName == "User2")
+            {
+                await this.GetUsers(accessToken);
+            }
+        }
+
+        private async Task StartHubConnection(string accessToken)
+        {
             var connection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:5001/userHub", options =>
+                .WithUrl("http://localhost:5000/userHub", options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult(accessToken);
                 })
                 .WithAutomaticReconnect()
                 .Build();
 
+
             await connection.StartAsync();
-            Console.WriteLine("CONNECTED");
+            Console.WriteLine("UserHub: CONNECTED");
 
-            connection.On<string, List<User>>("GotUsers", (userId, users) =>
+            connection.On<List<User>>("GotUsers", (response) =>
             {
-                Console.WriteLine($"Got users for {userId}:");
+                Console.WriteLine("Users received:");
 
-                foreach (var user in users)
+                foreach (var user in response)
                 {
-                    Console.WriteLine(user);
+                    Console.WriteLine($"{user.Id} : ${user.UserName}");
                 }
             });
-
-            await GetUsers(accessToken);
-            Console.WriteLine("Sent get users");
         }
 
-        private async Task<string> GetToken(string userName, string password)
+        private async Task<string> GetToken(string userName, string password, string groupId)
         {
-            using var client = this.GetClient();
-            var result = await client.PostAsJsonAsync("User/Login", new { userName, password });
+            using var client = GetClient();
+            var result = await client.PostAsJsonAsync("User/Login", new { user_name = userName, password = password, group_id = groupId });
             var accessToken = await result.Content.ReadAsStringAsync();
             Console.WriteLine($"Access token: {accessToken}");
             return accessToken;
@@ -50,7 +59,9 @@
 
         private async Task GetUsers(string accessToken)
         {
-            using var client = this.GetClient();
+            Console.WriteLine("Send get users request");
+
+            using var client = GetClient();
             var request = new HttpRequestMessage(HttpMethod.Post, "User/GetUsers");
             request.Headers.Add("Accept", "application/vnd.github.v3+json");
             request.Headers.Add("User-Agent", "HttpClientFactory-Sample");
@@ -58,9 +69,9 @@
             await client.SendAsync(request);
         }
 
-        private HttpClient GetClient()
+        private static HttpClient GetClient()
         {
-            var client = new HttpClient { BaseAddress = new Uri("https://localhost:5001") };
+            var client = new HttpClient { BaseAddress = new Uri("http://localhost:5000") };
             return client;
         }
     }

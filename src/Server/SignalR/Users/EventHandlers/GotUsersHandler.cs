@@ -19,8 +19,12 @@
         public async Task Handle(GotUsers notification, CancellationToken cancellationToken)
         {
             this.logger.LogInformation("Send got users message");
-            //.User(notification.UserId.ToString())
-            await this.hubContext.Clients.User(notification.UserId.ToString()).SendAsync("GotUsers", notification.UserId.ToString(), notification.Users, cancellationToken);
+
+            var groupId = notification.GroupId.ToString();
+
+            await this.hubContext.Clients
+                .Group(groupId)
+                .SendAsync("GotUsers", notification.Users, cancellationToken);
         }
     }
 }

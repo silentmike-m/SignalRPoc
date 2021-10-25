@@ -71,18 +71,16 @@ namespace Server
                     {
                         var accessToken = context.Request.Query["access_token"];
 
-                        if (string.IsNullOrEmpty(accessToken))
+                        if (string.IsNullOrEmpty(accessToken) && context.Request.Headers.TryGetValue("Authorization", out var value))
                         {
-                            if (context.Request.Headers.TryGetValue("Authorization", out var value))
-                            {
-                                accessToken = value.ToString().Replace("Bearer ", string.Empty);
-                            }
+                            accessToken = value.ToString().Replace("Bearer ", string.Empty);
                         }
 
                         if (!string.IsNullOrEmpty(accessToken))
                         {
                             context.Token = accessToken;
                         }
+
                         return Task.CompletedTask;
                     },
                 };

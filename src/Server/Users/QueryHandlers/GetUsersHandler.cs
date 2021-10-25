@@ -22,7 +22,15 @@
             this.logger.LogInformation("Receive get users request");
 
             var users = this.context.Users.ToList();
-            this.mediator.Publish(new GotUsers { Users = users, UserId = request.UserId }, cancellationToken);
+
+            var notification = new GotUsers
+            {
+                GroupId = request.GroupId,
+                UserId = request.UserId,
+                Users = users,
+            };
+
+            this.mediator.Publish(notification, cancellationToken);
 
             return Task.FromResult(Unit.Value);
         }
