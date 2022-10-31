@@ -450,3 +450,15 @@ $RECYCLE.BIN/
 ## Sonar Qube
 ##
 **/.sonarqube/**
+
+##
+## Take-off service default directories
+##
+**/temp/**
+**/converter/**
+.~lock.*.xlsx#
+
+##
+## Directory Build Props
+##
+**/Directory.Build.props
