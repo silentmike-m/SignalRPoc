@@ -1,38 +1,37 @@
-﻿namespace Server.Users.QueryHandlers
+﻿namespace Server.Users.QueryHandlers;
+
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using Server.Users.Events;
+using Server.Users.Queries;
+
+internal sealed class GetUsersHandler : IRequestHandler<GetUsers>
 {
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using MediatR;
-    using Microsoft.Extensions.Logging;
-    using Server.Users.Events;
-    using Server.Users.Queries;
+    private readonly ApiContext context;
+    private readonly ILogger<GetUsersHandler> logger;
+    private readonly IMediator mediator;
 
-    internal sealed class GetUsersHandler : IRequestHandler<GetUsers>
+    public GetUsersHandler(ApiContext context, ILogger<GetUsersHandler> logger, IMediator mediator) =>
+        (this.context, this.logger, this.mediator) = (context, logger, mediator);
+
+    public Task<Unit> Handle(GetUsers request, CancellationToken cancellationToken)
     {
-        private readonly ApiContext context;
-        private readonly ILogger<GetUsersHandler> logger;
-        private readonly IMediator mediator;
+        this.logger.LogInformation("Receive get users request");
 
-        public GetUsersHandler(ApiContext context, ILogger<GetUsersHandler> logger, IMediator mediator) =>
-            (this.context, this.logger, this.mediator) = (context, logger, mediator);
+        var users = this.context.Users.ToList();
 
-        public Task<Unit> Handle(GetUsers request, CancellationToken cancellationToken)
+        var notification = new GotUsers
         {
-            this.logger.LogInformation("Receive get users request");
+            CompanyId = request.CompanyId,
+            UserId = request.UserId,
+            Users = users,
+        };
 
-            var users = this.context.Users.ToList();
+        this.mediator.Publish(notification, cancellationToken);
 
-            var notification = new GotUsers
-            {
-                GroupId = request.GroupId,
-                UserId = request.UserId,
-                Users = users,
-            };
-
-            this.mediator.Publish(notification, cancellationToken);
-
-            return Task.FromResult(Unit.Value);
-        }
+        return Task.FromResult(Unit.Value);
     }
 }

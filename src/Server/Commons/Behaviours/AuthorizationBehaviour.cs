@@ -1,37 +1,36 @@
-﻿namespace Server.Commons.Behaviours
+﻿namespace Server.Commons.Behaviours;
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+
+internal sealed class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using MediatR;
+    private readonly ICurrentRequestService currentUserService;
 
-    internal sealed class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public AuthorizationBehaviour(ICurrentRequestService currentUserService)
     {
-        private readonly ICurrentRequestService currentUserService;
+        this.currentUserService = currentUserService;
+    }
 
-        public AuthorizationBehaviour(ICurrentRequestService currentUserService)
+    public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+    {
+        if (request is IAuthId authId)
         {
-            this.currentUserService = currentUserService;
-        }
+            var (companyId, userId) = currentUserService.CurrentUser;
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
-        {
-            if (request is IAuthId authId)
+            if (authId.UserId == Guid.Empty)
             {
-                var (groupId, userId) = currentUserService.CurrentUser;
-
-                if (authId.UserId == Guid.Empty)
-                {
-                    authId.UserId = userId;
-                }
-
-                if (string.IsNullOrEmpty(authId.GroupId))
-                {
-                    authId.GroupId = groupId;
-                }
+                authId.UserId = userId;
             }
 
-            return await next();
+            if (string.IsNullOrEmpty(authId.CompanyId))
+            {
+                authId.CompanyId = companyId;
+            }
         }
+
+        return await next();
     }
 }

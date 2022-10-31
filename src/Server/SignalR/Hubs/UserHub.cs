@@ -1,22 +1,30 @@
 ﻿namespace Server.SignalR.Hubs
 {
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.SignalR;
+    using Server.Entities;
+    using SignalRSwaggerGen.Attributes;
 
-    public sealed class UserHub : Hub
+    [SignalRHub("/userHub")]
+    public sealed class UserHub : PocHub
     {
-        public override Task OnConnectedAsync()
+        public static string PATTERN = "/userHub";
+
+        private readonly IHubContext<UserHub> hubContext;
+
+        public UserHub(IHubContext<UserHub> hubContext)
+            => this.hubContext = hubContext;
+
+        [SignalRMethod("GotUsers")]
+        [return: NotNull, SignalRReturn(typeof(IReadOnlyList<User>))]
+        public async Task SendUsersAsync([SignalRParam(null, typeof(string))] string companyId, [SignalRHidden] IReadOnlyList<User> users, [SignalRHidden] CancellationToken cancellationToken = default)
         {
-            var groupIdentifier = this.Context.User?.FindFirst("GroupId");
-
-            if (groupIdentifier is not null)
-            {
-                this.Groups.AddToGroupAsync(this.Context.ConnectionId, groupIdentifier.Value)
-                    .GetAwaiter()
-                    .GetResult();
-            }
-
-            return base.OnConnectedAsync();
+            await this.hubContext.Clients
+                .Group(companyId)
+                .SendAsync("GotUsers", users, cancellationToken);
         }
     }
 }

@@ -10,10 +10,9 @@
 
     internal sealed class SignalRClient
     {
-        public async Task StartConnection(string userName, string password, string groupId)
+        public async Task StartConnection(string userName, string password, string companyId)
         {
-            var accessToken = await this.GetToken(userName, password, groupId);
-
+            var accessToken = await this.GetToken(userName, password, companyId);
 
             await this.StartHubConnection(accessToken);
 
@@ -48,10 +47,10 @@
             });
         }
 
-        private async Task<string> GetToken(string userName, string password, string groupId)
+        private async Task<string> GetToken(string userName, string password, string companyId)
         {
             using var client = GetClient();
-            var result = await client.PostAsJsonAsync("User/Login", new { user_name = userName, password = password, group_id = groupId });
+            var result = await client.PostAsJsonAsync("User/Login", new { user_name = userName, password = password, company_id = companyId });
             var accessToken = await result.Content.ReadAsStringAsync();
             Console.WriteLine($"Access token: {accessToken}");
             return accessToken;

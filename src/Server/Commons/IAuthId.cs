@@ -1,10 +1,9 @@
-﻿namespace Server.Commons
-{
-    using System;
+﻿namespace Server.Commons;
 
-    public interface IAuthId
-    {
-        string GroupId { get; set; }
-        Guid UserId { get; set; }
-    }
+using System;
+
+public interface IAuthId
+{
+    string CompanyId { get; set; }
+    Guid UserId { get; set; }
 }

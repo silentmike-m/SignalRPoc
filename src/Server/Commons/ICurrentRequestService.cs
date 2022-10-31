@@ -1,9 +1,8 @@
-﻿namespace Server.Commons
-{
-    using System;
+﻿namespace Server.Commons;
 
-    public interface ICurrentRequestService
-    {
-        (string groupId, Guid userId) CurrentUser { get; }
-    }
+using System;
+
+public interface ICurrentRequestService
+{
+    (string groupId, Guid userId) CurrentUser { get; }
 }

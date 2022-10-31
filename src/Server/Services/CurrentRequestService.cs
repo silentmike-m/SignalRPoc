@@ -1,33 +1,32 @@
-﻿namespace Server.Services
+﻿namespace Server.Services;
+
+using System;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Server.Commons;
+
+public class CurrentRequestService : ICurrentRequestService
 {
-    using System;
-    using System.Security.Claims;
-    using Microsoft.AspNetCore.Http;
-    using Server.Commons;
+    private readonly IHttpContextAccessor httpContextAccessor;
 
-    public class CurrentRequestService : ICurrentRequestService
+    public CurrentRequestService(IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IHttpContextAccessor httpContextAccessor;
+        this.httpContextAccessor = httpContextAccessor;
+    }
 
-        public CurrentRequestService(IHttpContextAccessor httpContextAccessor)
+    public (string groupId, Guid userId) CurrentUser
+    {
+        get
         {
-            this.httpContextAccessor = httpContextAccessor;
-        }
+            var nameIdentifier = this.httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var companyIdentifier = this.httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimNames.CompanyId)
+                                  ?? string.Empty;
 
-        public (string groupId, Guid userId) CurrentUser
-        {
-            get
-            {
-                var nameIdentifier = this.httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-                var groupIdentifier = this.httpContextAccessor.HttpContext?.User?.FindFirstValue("GroupId")
-                    ?? string.Empty;
+            var userId = string.IsNullOrEmpty(nameIdentifier)
+                ? Guid.Empty
+                : new Guid(nameIdentifier);
 
-                var userId = string.IsNullOrEmpty(nameIdentifier)
-                                  ? Guid.Empty
-                                  : new Guid(nameIdentifier);
-
-                return (groupIdentifier, userId);
-            }
+            return (companyIdentifier, userId);
         }
     }
 }

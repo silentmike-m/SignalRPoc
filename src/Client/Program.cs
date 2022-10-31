@@ -8,14 +8,16 @@ namespace Client
     {
         static async Task Main(string[] args)
         {
+            Console.ReadLine();
+
             try
             {
-                if (args.Length != 3)
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
+                //if (args.Length != 3)
+                //{
+                //    throw new ArgumentOutOfRangeException();
+                //}
 
-                await new SignalRClient().StartConnection(args[0], args[1], args[2]);
+                await new SignalRClient().StartConnection("User2", "P@ssword!", "company1");
 
             }
             catch (Exception exception)
