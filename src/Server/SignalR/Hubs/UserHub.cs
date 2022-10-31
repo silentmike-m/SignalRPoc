@@ -11,9 +11,8 @@ using SignalRSwaggerGen.Attributes;
 [SignalRHub("/userHub")]
 public sealed class UserHub : PocHub<UserHub>
 {
+    private const string GOT_USERS_MESSAGE = "GotUsers";
     public static string PATTERN = "/userHub";
-
-    private readonly string GOT_USERS_MESSAGE = "GotUsers";
 
     public UserHub(IHubContext<UserHub> context)
         : base(context)
@@ -26,6 +25,6 @@ public sealed class UserHub : PocHub<UserHub>
     {
         await this.context.Clients
             .Group(companyId)
-            .SendAsync(this.GOT_USERS_MESSAGE, users, cancellationToken);
+            .SendAsync(GOT_USERS_MESSAGE, users, cancellationToken);
     }
 }
