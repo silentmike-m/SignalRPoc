@@ -22,13 +22,44 @@ using Server.Commons;
 using Server.Commons.Behaviours;
 using Server.Entities;
 using Server.Services;
-using Server.SignalR.Hubs;
+using Server.SignalR;
 
 public class Startup
 {
     public IConfiguration Configuration { get; }
 
     public Startup(IConfiguration configuration) => this.Configuration = configuration;
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+    {
+        app.Use(async (context, next) =>
+        {
+            context.Request.PathBase = new PathString("/api");
+            await next();
+        });
+
+        SeedUsers(app, loggerFactory);
+
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("v1/swagger.json", "SignalRPoc Server v1"));
+        }
+
+        app.UseHealthChecks("/health");
+
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+
+            endpoints.UsePocSignalR();
+        });
+    }
 
     public void ConfigureServices(IServiceCollection services)
     {
@@ -39,9 +70,8 @@ public class Startup
         services.AddHttpContextAccessor();
         services.AddSingleton<ICurrentRequestService, CurrentRequestService>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehaviour<,>));
-        services.AddSignalR();
 
-        services.AddScoped<UserHub>();
+        services.AddPocSignalR();
 
         services.AddDbContext<ApiContext>(opt => opt.UseInMemoryDatabase("SignalRPoc"));
 
@@ -94,10 +124,7 @@ public class Startup
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
 
-        services.ConfigureSwaggerGen(c =>
-        {
-            c.CustomSchemaIds(s => s.FullName);
-        });
+        services.ConfigureSwaggerGen(c => { c.CustomSchemaIds(s => s.FullName); });
 
         services.AddSwaggerGen(c =>
         {
@@ -108,36 +135,6 @@ public class Startup
                 Title = "SignalRPoc Server",
                 Version = "v1",
             });
-        });
-    }
-
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
-    {
-        app.Use(async (context, next) =>
-        {
-            context.Request.PathBase = new PathString("/api");
-            await next();
-        });
-
-        SeedUsers(app, loggerFactory);
-
-        if (env.IsDevelopment())
-        {
-            app.UseDeveloperExceptionPage();
-            app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("v1/swagger.json", "SignalRPoc Server v1"));
-        }
-
-        app.UseHealthChecks("/health");
-
-        app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-            endpoints.MapHub<UserHub>(UserHub.PATTERN);
         });
     }
 
